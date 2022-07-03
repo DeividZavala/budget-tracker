@@ -1,6 +1,6 @@
 import 'package:budget_tracker/pages/home_page.dart';
 import 'package:budget_tracker/pages/profile_page.dart';
-import 'package:budget_tracker/services/budget_service.dart';
+import 'package:budget_tracker/view_models/budget_view_model.dart';
 import 'package:budget_tracker/services/theme_service.dart';
 import 'package:budget_tracker/widgets/add_budget_dialog.dart';
 import 'package:flutter/material.dart';
@@ -42,10 +42,10 @@ class _HomeState extends State<Home> {
                     context: context,
                     builder: (context) => AddBudgetDialog(
                           budgetToAdd: (budget) {
-                            final budgetService = Provider.of<BudgetService>(
-                                context,
-                                listen: false);
-                            budgetService.budget = budget;
+                            final budgetViewModel =
+                                Provider.of<BudgetViewModel>(context,
+                                    listen: false);
+                            budgetViewModel.budget = budget;
                           },
                         ));
               },

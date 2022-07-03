@@ -26,8 +26,24 @@ class LocalStorageService {
   }
 
   void saveTransactionItem(TransactionItem transaction) {
-    Hive.box(transactionsBoxKey).add(transaction);
+    Hive.box<TransactionItem>(transactionsBoxKey).add(transaction);
     saveBalance(transaction);
+  }
+
+  void deleteTransactionItem(TransactionItem transaction) {
+    // Get a list of our transactions
+    final transactions = Hive.box<TransactionItem>(transactionsBoxKey);
+    // Create a map out of it
+    final Map<dynamic, TransactionItem> map = transactions.toMap();
+    dynamic desiredKey;
+    // For each key in the map, we check if the transaction is the same as the one we want to delete
+    map.forEach((key, value) {
+      if (value.title == transaction.title) desiredKey = key;
+    });
+    // If we found the key, we delete it
+    transactions.delete(desiredKey);
+    // And we update the balance
+    saveBalanceOnDelete(transaction);
   }
 
   List<TransactionItem> getAllTransactionItems() {
@@ -41,6 +57,16 @@ class LocalStorageService {
       balanceBox.put("balance", currentBalance + transaction.amount);
     } else {
       balanceBox.put("balance", currentBalance - transaction.amount);
+    }
+  }
+
+  Future<void> saveBalanceOnDelete(TransactionItem transaction) async {
+    final balanceBox = Hive.box<double>(balanceBoxKey);
+    final currentBalance = balanceBox.get("balance") ?? 0.0;
+    if (transaction.isExpense) {
+      balanceBox.put("balance", currentBalance - transaction.amount);
+    } else {
+      balanceBox.put("balance", currentBalance + transaction.amount);
     }
   }
 
