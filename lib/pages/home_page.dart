@@ -1,7 +1,9 @@
 import 'package:budget_tracker/models/transaction_item.dart';
+import 'package:budget_tracker/services/budget_service.dart';
 import 'package:budget_tracker/widgets/add_transaction_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -11,8 +13,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<TransactionItem> transactions = [];
-
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -24,9 +24,9 @@ class _HomePageState extends State<HomePage> {
                   context: context,
                   builder: (context) =>
                       AddTransactionDialog(itemToAdd: (transactionItem) {
-                        setState(() {
-                          transactions.add(transactionItem);
-                        });
+                        final budgetService =
+                            Provider.of<BudgetService>(context, listen: false);
+                        budgetService.addItem(transactionItem);
                       }));
             },
             child: const Icon(Icons.add)),
@@ -40,23 +40,32 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Align(
                   alignment: Alignment.topCenter,
-                  child: CircularPercentIndicator(
-                    radius: screenSize.width / 2,
-                    percent: 0.5,
-                    lineWidth: 2,
-                    center: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text(
-                          "\$0",
-                          style: TextStyle(
-                              fontSize: 48, fontWeight: FontWeight.bold),
-                        ),
-                        Text("Balance", style: TextStyle(fontSize: 18)),
-                      ],
-                    ),
-                    progressColor: Theme.of(context).colorScheme.primary,
-                  ),
+                  child: Consumer<BudgetService>(
+                      builder: ((context, value, child) =>
+                          CircularPercentIndicator(
+                            radius: screenSize.width / 2,
+                            percent: value.balance / value.budget,
+                            lineWidth: 2,
+                            center: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "\$${value.balance.toString().split(".")[0]}",
+                                  style: const TextStyle(
+                                      fontSize: 48,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const Text("Balance",
+                                    style: TextStyle(fontSize: 18)),
+                                Text(
+                                  "Budget: \$${value.budget.toString()}",
+                                  style: const TextStyle(fontSize: 10),
+                                ),
+                              ],
+                            ),
+                            progressColor:
+                                Theme.of(context).colorScheme.primary,
+                          ))),
                 ),
                 const SizedBox(height: 35),
                 const Text(
@@ -64,10 +73,15 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-                ...List.generate(
-                    transactions.length,
-                    (index) =>
-                        TransactionCard(transaction: transactions[index])),
+                Consumer<BudgetService>(builder: ((context, value, child) {
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: value.items.length,
+                    physics: const ClampingScrollPhysics(),
+                    itemBuilder: (context, index) =>
+                        TransactionCard(transaction: value.items[index]),
+                  );
+                })),
               ],
             ),
           ),

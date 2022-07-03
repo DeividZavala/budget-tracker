@@ -17,7 +17,7 @@ class _AddBudgetDialogState extends State<AddBudgetDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       child: SizedBox(
-          height: 150,
+          height: 200,
           width: MediaQuery.of(context).size.width / 1.3,
           child: Padding(
             padding: const EdgeInsets.all(15),
