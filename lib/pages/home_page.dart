@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
                           CircularPercentIndicator(
                             radius: screenSize.width / 2,
                             percent: value.balance / value.budget,
-                            lineWidth: 2,
+                            lineWidth: 5,
                             center: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
